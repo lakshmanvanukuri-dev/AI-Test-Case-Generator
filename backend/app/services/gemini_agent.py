@@ -7,8 +7,8 @@ class GeminiAgent:
         genai.configure(api_key=settings.GOOGLE_API_KEY)
         
         # Initialize the model
-        # Using gemini-2.5-flash as it is available and efficient
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        # Using gemini-2.5-flash-lite as requested
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
     def generate_test_cases(self, user_story: str, acceptance_criteria: str) -> str:
         """
@@ -40,6 +40,5 @@ class GeminiAgent:
         try:
             response = self.model.generate_content(prompt)
             return response.text
-        except Exception as e:
-            print(f"Error generating content: {e}")
+        except Exception:
             return "[]"

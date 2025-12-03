@@ -29,16 +29,22 @@ async def generate_test_cases(request: TestCaseRequest):
         # Call the AI agent to generate test cases
         result_text = agent.generate_test_cases(request.user_story, request.acceptance_criteria)
         
-        # Clean up the result if it contains markdown code blocks
-        cleaned_text = result_text.replace("```json", "").replace("```", "").strip()
-        
-        # Parse the JSON response
-        test_cases = json.loads(cleaned_text)
+        # Improved cleaning: Find the JSON array
+        try:
+            start_index = result_text.find('[')
+            end_index = result_text.rfind(']') + 1
+            if start_index != -1 and end_index != -1:
+                json_str = result_text[start_index:end_index]
+                test_cases = json.loads(json_str)
+            else:
+                # Fallback to original cleaning if no brackets found
+                cleaned_text = result_text.replace("```json", "").replace("```", "").strip()
+                test_cases = json.loads(cleaned_text)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="Failed to parse AI response. The model might have returned invalid JSON.")
         
         return {"test_cases": test_cases}
     
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response. The model might have returned invalid JSON.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
